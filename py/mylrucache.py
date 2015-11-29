@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
         @functools.wraps(func)
         def wrapper(*vargs, **kargs):
-            sig_args = ', '.join( '{}={}({})'.format(k,v,type(v)) for k,v in itertools.chain(enumerate(vargs), kargs.items()))
+            sig_args = ', '.join( '{}={}({})'.format(k,v,v.__class__.__name__) for k,v in itertools.chain(enumerate(vargs), kargs.items()))
 
             result = cache.get(sig_args)
             if result is not None:
