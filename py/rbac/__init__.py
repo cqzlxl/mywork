@@ -1,25 +1,6 @@
 ##-*-coding: utf-8;-*-##
+from manager import Manager
 
 
-class Role(object):
-    pass
-
-
-class User(object):
-    pass
-
-
-class Permission(object):
-    pass
-
-
-class Operation(object):
-    pass
-
-
-class Session(object):
-    pass
-
-
-class Constraints(object):
-    pass
+def get_manager(db_url='sqlite:///:memory:', **more_config):
+    return Manager(db_url)
