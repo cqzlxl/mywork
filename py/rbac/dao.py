@@ -32,8 +32,13 @@ class User(RBAC_BASE):
         self.roles.append(role)
 
 
+    def resign(self, role):
+        self.roles.remove(role)
+
+
+
 class Role(RBAC_BASE):
-    __tablename__ = 'rbac_roles'
+    __tablename__ = config.tablename_prefix + 'roles'
 
     id_ = Column(BigInteger, autoincrement=True, primary_key=True)
     parent_id = Column(BigInteger, ForeignKey(id_))
@@ -68,20 +73,29 @@ class Role(RBAC_BASE):
             return False
 
 
-    def assign(self, operation):
-        self.operations.append(operation)
+    def inherit(self, parent):
+        parent.children.append(self)
 
 
 class Operation(RBAC_BASE):
-    __tablename__ = 'rbac_operations'
+    __tablename__ = config.tablename_prefix + 'operations'
 
     id_ = Column(BigInteger, autoincrement=True, primary_key=True)
     name = Column(String(255), unique=True)
     desc = Column(String(255))
 
 
+    def revoke(self, role):
+        self.roles.remove(role)
+
+
+    def assign(self, role):
+        self.roles.add(role)
+
+
+
 class UserRole(RBAC_BASE):
-    __tablename__ = 'rbac_user_role'
+    __tablename__ = config.tablename_prefix + 'user_role'
 
     id_ = Column(BigInteger, autoincrement=True, primary_key=True)
     user_id = Column(BigInteger, ForeignKey(User.id_))
@@ -91,7 +105,7 @@ class UserRole(RBAC_BASE):
 
 
 class RoleOperation(RBAC_BASE):
-    __tablename__ = 'rbac_role_operation'
+    __tablename__ = config.tablename_prefix + 'role_operation'
 
     id_ = Column(BigInteger, autoincrement=True, primary_key=True)
     role_id = Column(BigInteger, ForeignKey(Role.id_))

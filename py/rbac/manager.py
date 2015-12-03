@@ -90,7 +90,7 @@ class Manager(object):
             return
 
         p = s.query(Role).filter_by(name=parent).one_or_none()
-        p.children.add(c)
+        c.inherit(p)
 
 
     @service
@@ -117,10 +117,10 @@ class Manager(object):
 
 
     @service
-    def inherit(self, s, child, parent):
+    def inherit_role(self, s, child, parent):
         c = s.query(Role).filter_by(name=child).one_or_none()
         p = s.query(Role).filter_by(name=parent).one_or_none()
-        p.children.append(c)
+        c.inherit(p)
 
 
     @service
@@ -155,28 +155,28 @@ class Manager(object):
     def assign_user_to_role(self, s, user, role):
         u = s.query(User).filter_by(name=user).one_or_none()
         r = s.query(Role).filter_by(name=role).one_or_none()
-        r.users.append(u)
+        u.assign(r)
 
 
     @service
     def remove_user_from_role(self, s, user, role):
         u = s.query(User).filter_by(name=user).one_or_none()
         r = s.query(Role).filter_by(name=role).one_or_none()
-        r.users.remove(u)
+        u.resign(r)
 
 
     @service
     def assign_operation_to_role(self, s, operation, role):
         op = s.query(Operation).filter_by(name=operation).one_or_none()
         r = s.query(Role).filter_by(name=role).one_or_none()
-        r.operations.append(op)
+        op.assign(r)
 
 
     @service
     def revoke_operation_from_role(self, s, operation, role):
         op = s.query(Operation).filter_by(name=operation).one_or_none()
         r = s.query(Role).filter_by(name=role).one_or_none()
-        r.operations.remove(op)
+        op.revoke(r)
 
 
     @service
