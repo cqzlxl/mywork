@@ -1,9 +1,11 @@
 ##-*-coding: utf-8;-*-##
-import cmd
+from cmd import Cmd
 import os
+import traceback
+import xmlrpclib
 
 
-class Control(cmd.Cmd):
+class BasicControl(Cmd):
     supported_sh_cmd = (
         'man',
         'help',
@@ -17,8 +19,25 @@ class Control(cmd.Cmd):
     )
 
 
+    def __init__(self, admin_url=None):
+        Cmd.__init__(self)
+
+        self.admin_url = None
+        self.admin_proxy = None
+        if admin_url is not None:
+            self.do_connect(admin_url)
+
+
     def emptyline(self):
         pass
+
+
+    def onecmd(self, args):
+        try:
+            return Cmd.onecmd(self, args)
+        except Exception:
+            traceback.print_exc(self.stdout)
+            return False
 
 
     def do_exit(self, line):
@@ -36,7 +55,6 @@ class Control(cmd.Cmd):
     def help_EOF(self):
         self._print_leave_help_message('EOF')
 
-
     def do_shell(self, line):
         if self._is_sh_cmd_safe(line):
             os.system(line)
@@ -53,6 +71,14 @@ class Control(cmd.Cmd):
 
     def help_logging(self):
         self.usage('logging', '<level> [logger]', 'Change the server logging policy.')
+
+
+    def do_connect(self, line):
+        self.admin_url = line
+        self.admin_proxy = xmlrpclib.ServerProxy(self.admin_url)
+
+    def help_connect(self):
+        self.usage('connect', '<url>', 'Connect to server admin service')
 
 
     def usage(self, cmd, args, desc):
@@ -96,6 +122,6 @@ class Control(cmd.Cmd):
 
 
 if __name__ == '__main__':
-    interpreter = Control()
+    interpreter = BasicControl()
     interpreter.prompt = 'Server admin> '
     interpreter.cmdloop()
