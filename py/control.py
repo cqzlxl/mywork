@@ -62,7 +62,7 @@ class BasicControl(Cmd):
             self.default(line)
 
     def help_shell(self):
-        self.usage('shell', '<command line>.', 'Execute shell commands')
+        self.usage('shell', '<command line>.', 'Execute shell commands.')
         print 'You can also use the ! shortcut.'
 
 
@@ -78,7 +78,14 @@ class BasicControl(Cmd):
         self.admin_proxy = xmlrpclib.ServerProxy(self.admin_url)
 
     def help_connect(self):
-        self.usage('connect', '<url>', 'Connect to server admin service')
+        self.usage('connect', '<url>', 'Connect to server admin service.')
+
+
+    def do_pwd(self, line):
+        print os.getcwd()
+
+    def help_pwd(self):
+        self.usage('pwd', '', 'Print current working directory.')
 
 
     def usage(self, cmd, args, desc):
