@@ -28,7 +28,7 @@ def mapping(pattern, args=None, name=None):
 
         urlspecs[pattern] = URLSpec(pattern, class_, args, name)
 
-        logging.debug('URL mapping: %s ==> %s', pattern, class_)
+        logging.debug('URL mapping: %s ==> %s', pattern, class_.__name__)
         logging.debug('URL mapping: name = %s', name)
         logging.debug('URL mapping: args = %s', args)
         logging.debug('URL mapping: methods = %s', list(supported))
