@@ -12,7 +12,7 @@ def json_only(method):
             return method(self, *vargs, **kargs)
 
         logging.error('request content type should be JSON')
-        raise HTTPError(400, 'JSON Request Only')
+        raise HTTPError(415, 'JSON Request Only')
 
     return wrapper
 
