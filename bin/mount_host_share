@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+##-*-coding: utf-8;-*-##
+set -e
+
+
+sudo mount -t vboxsf -oexec,uid=$(id -u),gid=$(id -g) HOST_SHARE $HOME/s
