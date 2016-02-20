@@ -1,4 +1,5 @@
 #include <alloca.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,12 +10,14 @@
 
 
 static FILE *logging_stream = NULL;
+static pthread_mutex_t logging_stream_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 static int do_logging(int level, const char *fmt, va_list args)
 {
     const char *level_name;
-    switch(level) {
+    switch(level)
+    {
         case LOGGING_ERROR:
             level_name = "ERROR";
             break;
@@ -47,9 +50,14 @@ static int do_logging(int level, const char *fmt, va_list args)
 
     FILE *stream = logging_get_stream();
     int n = 0;
-    n += fprintf(stream, "%s %s ", timestr, level_name);
-    n += vfprintf(stream, fmt, args);
-    n += fprintf(stream, "\n");
+
+    if (pthread_mutex_lock(&logging_stream_mutex) == 0)
+    {
+        n += fprintf(stream, "%s %s ", timestr, level_name);
+        n += vfprintf(stream, fmt, args);
+        n += fprintf(stream, "\n");
+        pthread_mutex_unlock(&logging_stream_mutex);
+    }
 
     return n;
 }

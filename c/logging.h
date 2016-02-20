@@ -1,5 +1,5 @@
 #ifndef LOGGING_H
-#define LOGGING_H 1
+#define LOGGING_H        1
 
 #include <errno.h>
 #include <stdio.h>
