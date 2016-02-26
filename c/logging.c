@@ -13,7 +13,23 @@ static FILE *logging_stream = NULL;
 static pthread_mutex_t logging_stream_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-static int do_logging(int level, const char *fmt, va_list args)
+int logging_set_stream(FILE *stream)
+{
+    logging_stream = stream;
+    return 0;
+}
+
+
+FILE* logging_get_stream(void)
+{
+    if (logging_stream == NULL)
+        logging_set_stream(stderr);
+
+    return logging_stream;
+}
+
+
+int do_logging(const struct logging_location *loc, int level, const char *fmt, ...)
 {
     const char *level_name;
     switch(level)
@@ -34,8 +50,12 @@ static int do_logging(int level, const char *fmt, va_list args)
             level_name = "DEBUG";
             break;
 
-        default:
+        case LOGGING_TRACE:
             level_name = "TRACE";
+            break;
+
+        default:
+            return 0;
             break;
     };
 
@@ -43,10 +63,9 @@ static int do_logging(int level, const char *fmt, va_list args)
     struct tm now = {};
     localtime_r(&seconds, &now);
 
-    char timestr[] = "1999-01-01 00:00:00(0000000000)";
+    char timestr[] = "1999-12-31 23:59:59(0000000000)";
     char timefmt[] = "%F %T(%s)";
     strftime(timestr, sizeof(timestr), timefmt, &now);
-
 
     FILE *stream = logging_get_stream();
     int n = 0;
@@ -54,64 +73,23 @@ static int do_logging(int level, const char *fmt, va_list args)
     if (pthread_mutex_lock(&logging_stream_mutex) == 0)
     {
         n += fprintf(stream, "%s %s ", timestr, level_name);
+
+        if (level != LOGGING_INFO)
+        {
+            char *buffer = alloca(1024);
+            LOGGING_LOCATION_STRING(loc, buffer, 1024);
+            n += fprintf(stream, " %s ", buffer);
+        }
+
+        va_list args;
+        va_start(args, fmt);
         n += vfprintf(stream, fmt, args);
+        va_end(args);
+
         n += fprintf(stream, "\n");
+
         pthread_mutex_unlock(&logging_stream_mutex);
     }
 
     return n;
-}
-
-#define DO_LOGGING(level,format) do {               \
-        va_list args;                               \
-        va_start(args, format);                     \
-        int n = do_logging(level, format, args);    \
-        va_end(args);                               \
-        return n;                                   \
-} while(0)
-
-
-int logging(int level, const char *format, ...)
-{
-    DO_LOGGING(level, format);
-}
-
-
-int logging_error(const char *format, ...)
-{
-    DO_LOGGING(LOGGING_ERROR, format);
-}
-
-
-int logging_warn(const char *format, ...)
-{
-    DO_LOGGING(LOGGING_WARN, format);
-}
-
-
-int logging_info(const char *format, ...)
-{
-    DO_LOGGING(LOGGING_INFO, format);
-}
-
-
-int logging_debug(const char *format, ...)
-{
-    DO_LOGGING(LOGGING_DEBUG, format);
-}
-
-
-int logging_set_stream(FILE *stream)
-{
-    logging_stream = stream;
-    return 0;
-}
-
-
-FILE* logging_get_stream(void)
-{
-    if (logging_stream == NULL)
-        logging_set_stream(stderr);
-
-    return logging_stream;
 }
