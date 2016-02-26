@@ -40,7 +40,6 @@ int list_head_init(list_head_t *entry)
     return 0;
 }
 
-
 list_head_t *list_head_new(void)
 {
     list_head_t *e = malloc(sizeof(list_head_t));
@@ -48,6 +47,13 @@ list_head_t *list_head_new(void)
 
     list_head_init(e);
     return e;
+}
+
+void list_head_dumps(const list_head_t *entry)
+{
+    assert(entry != NULL);
+
+    logging_debug("list head %p: prev=>%p, next=>%p", entry, entry->prev, entry->next);
 }
 
 
@@ -60,7 +66,6 @@ int list_init(list_t *list)
     return 0;
 }
 
-
 list_t *list_new(void)
 {
     list_t *e = malloc(sizeof(list_t));
@@ -68,6 +73,29 @@ list_t *list_new(void)
 
     list_init(e);
     return e;
+}
+
+void list_dumps(const list_t *list)
+{
+    assert(list != NULL);
+
+    logging_debug("list %p, length: %d", list, list->count);
+    list_head_dumps(&list->head);
+
+    int i = 0;
+    list_for_each(list,e)
+    {
+        ++i;
+
+        logging_debug("list %p, item %d:", list, i);
+        list_head_dumps(e);
+
+        if (i > list->count)
+        {
+            logging_debug("list %p pointers may be wrong", list);
+            break;
+        }
+    }
 }
 
 
@@ -105,33 +133,24 @@ void list_delete(list_t *list, list_head_t *entry)
 }
 
 
-void dumps_list_head(const list_head_t *entry)
-{
-    assert(entry != NULL);
+#define list_reverse_singly_circular(head,direction) do {              \
+        list_head_t *h = head;                                         \
+        while (head->direction != head)                                \
+        {                                                              \
+            list_head_t *p = head->direction;                          \
+            head->direction = p->direction;                            \
+            p->direction = h;                                          \
+            h = p;                                                     \
+        }                                                              \
+        head->direction = h;                                           \
+} while (0)
 
-    logging_debug("list head %p: prev=>%p, next=>%p", entry, entry->prev, entry->next);
-}
 
-
-void dumps_list(const list_t *list)
+void list_reverse(list_t *list)
 {
     assert(list != NULL);
 
-    logging_debug("list %p, length: %d", list, list->count);
-    dumps_list_head(&list->head);
-
-    int i = 0;
-    list_for_each(list,e)
-    {
-        ++i;
-
-        logging_debug("list %p, item %d:", list, i);
-        dumps_list_head(e);
-
-        if (i > list->count)
-        {
-            logging_debug("list %p pointers may be wrong", list);
-            break;
-        }
-    }
+    list_head_t *head = &list->head;
+    list_reverse_singly_circular(head, next);
+    list_reverse_singly_circular(head, prev);
 }
